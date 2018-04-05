@@ -39,6 +39,35 @@ trait Stream[+A] {
     case Cons(h,t) => Some(h())
   }
 
+  def foldRight[B](z: => B)(f: (A, => B) => B): B =
+    this match {
+      case Cons(h,t) => f(h(), t().foldRight(z)(f))
+      case _ => z
+    }
+
+  def exists(p: A => Boolean): Boolean =
+    foldRight(false)((a,b) => p(a) || b)
+
+  def forAll(f: A => Boolean): Boolean =
+    foldRight(true)((a,b) => f(a) && b)
+
+  def takeWhile_1(f: A => Boolean): Stream[A] =
+    foldRight(empty: Stream[A])((a,b) => if (f(a)) cons(a, b) else empty)
+
+  def headOption: Option[A] =
+    foldRight(None: Option[A])((a, _) => Some(a))
+
+  def map[B](f: A => B): Stream[B] =
+    foldRight(empty:Stream[B])((a,b) => cons(f(a),b))
+
+  def filter(f: A => Boolean): Stream[A] =
+    foldRight(empty:Stream[A])((a,b) => if (f(a)) cons(a,b) else b)
+
+  def append[B>:A](s: => Stream[B]): Stream[B] =
+    foldRight(s)((a,b) => cons(a,b))
+
+  def flatMap[B](f: A => Stream[B]): Stream[B] =
+    foldRight(empty: Stream[B])((a,b) => f(a).append(b))
 }
 case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
@@ -56,5 +85,7 @@ object Stream {
   def apply[A](as: A*): Stream[A] =
     if (as.isEmpty) empty
     else cons(as.head, apply(as.tail: _*))
+
+  val ones: Stream[Int] = cons(1, ones)
 
 }

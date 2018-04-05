@@ -14,4 +14,19 @@ object CodeToLearnStream extends App {
   dummyStream.take(2).toList.map(x => println("take " + x()))
   dummyStream.takeWhile(x => x() % 2 != 0).toList.map(x => println("takeWhile " + x()))
 
+//  dummyStream.foldRight(() => 0)((a,b) => {println(a); () => 1})
+
+  println(dummyStream.foldRight(0)((a,acc) => { a() + acc}))
+
+  println(dummyStream.foldRight(() => 0)((a,acc) => { () => a() + acc()})())
+
+  // 2 is not computed :)
+  println(dummyStream.exists(x => { println("exists " + x()); x() % 2 != 0}))
+
+  println(Stream(1,2,3,4).map(_ + 10).filter(_ % 2 == 0).toList)
+
+  println(ones.take(5).toList)
+  println(ones.map(_+1).exists(_%2==0))
+  println(ones.forAll(_ != 1))
+
 }
