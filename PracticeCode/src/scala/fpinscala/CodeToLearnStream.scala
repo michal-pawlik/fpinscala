@@ -29,4 +29,19 @@ object CodeToLearnStream extends App {
   println(ones.map(_+1).exists(_%2==0))
   println(ones.forAll(_ != 1))
 
+  println(Stream.constant2(1).take(5).toList)
+
+  println(Stream.fibs.take(8).toList)
+
+  println(Stream.unfold(0)(x => Some((x, x+1))).take(5).toList)
+  println(Stream.unfold((0,1))(x => Some((x._1, (x._2, x._1 + x._2)))).take(8).toList)
+  println(Stream.unfold((0,1))(x => x match { case (f0,f1) => Some((f0, (f1, f0 + f1)))}).take(8).toList)
+
+  println(Stream.unfoldViaFold((0,1))(x => Some((x._1, (x._2, x._1 + x._2)))).take(8).toList)
+
+  println(Stream.fibsViaUnfold.take(5).toList)
+
+  dummyStream.tails.toList.foreach(x => {x.toList.foreach(x => print(x())); println})
+  dummyStream.tails2.toList.foreach(x => {x.toList.foreach(x => print(x())); println})
+
 }
