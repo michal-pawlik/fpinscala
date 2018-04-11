@@ -140,7 +140,7 @@ trait Stream[+A] {
 
   final def find(f: A => Boolean): Option[A] = this match {
     case Empty => None
-    case Cons(h,t) => if(f(h)) Some(h()) else t().find(f)
+    case Cons(h,t) => if(f(h())) Some(h()) else t().find(f)
   }
 }
 case object Empty extends Stream[Nothing]
