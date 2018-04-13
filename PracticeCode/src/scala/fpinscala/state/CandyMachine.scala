@@ -1,7 +1,7 @@
 package fpinscala.state
 
 
-class CandyMachine {
+object CandyMachine extends App {
 
   import State._
 
@@ -79,6 +79,7 @@ class CandyMachine {
   case class Machine(locked: Boolean, candies: Int, coins: Int)
 
   object Candy {
+    // Here input is given and Machine => Machine is returned
     def update = (i: Input) => (s: Machine) =>
       (i, s) match {
         case (_, Machine(_, 0, _)) => s
@@ -96,8 +97,20 @@ class CandyMachine {
     } yield (s.coins, s.candies)
 
     def simulateMachine2(inputs: List[Input]): State[Machine, (Int, Int)] = for {
-      _ <- sequence(inputs.map(input => (modify[Machine] _).compose(update)(input)))
+//      _ <- sequence(inputs.map(input => (modify[Machine] _).compose(update)(input)))
+      _ <- sequence(inputs.map(input => modify[Machine](update(input))))
       s <- get
     } yield (s.coins, s.candies)
+    // Here the modify will give you the State[Machine]((), Machine) and then the yield at the end will make use of map
+    // and will change the State's A to the tuple of coins and candies, and will give the State[Machine],
+    // State[Machine]((), Machine) Here yield will update the () to coins, candies,
+
   }
+
+  //candies: Int, coins: Int
+  println(Candy.simulateMachine2(List(Coin,Turn)).run((Machine(true,2,8))))
+//  ((9,1),Machine(true,1,9))
+
+  println(Candy.update(Coin)(Machine(true,2,8)))
+
 }
