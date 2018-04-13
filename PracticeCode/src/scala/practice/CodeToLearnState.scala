@@ -40,5 +40,5 @@ object CodeToLearnState extends App {
 
   printRNGfewTimes2(dummyRng, RNG.nonNegativeLessThan(2147483647), 10)
 
-  println(Int.MaxValue % (Int.MaxValue + 1000))
+  printRNGfewTimes2(dummyRng, RNG.rollDie, 7)
 }

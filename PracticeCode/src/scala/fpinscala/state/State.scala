@@ -104,7 +104,30 @@ object RNG {
     sequence(List.fill(count)(int))
   }
 
-  def nonNegativeLessThan(n: Int): Rand[Int] = {
+  def nonNegativeLessThan2(n: Int): Rand[Int] = {
     map(nonNegativeInt)(_ % n)
   }
+
+  def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] = {
+    rng => {
+      val (a, rng2) = f(rng)
+      val (b, rng3) = g(a)(rng2)
+      (b, rng3)
+    }
+  }
+
+  def nonNegativeLessThan(n: Int): Rand[Int] = {
+    flatMap(nonNegativeInt){ i =>
+      val mod = i % n
+      if (i + (n - 1) - mod >= 0) unit(mod) else nonNegativeLessThan(i)
+    }
+  }
+
+  def _map[A,B](s: Rand[A])(f: A => B): Rand[B] =
+    flatMap(s)(a => unit(f(a)))
+
+  def _map2[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] =
+    flatMap(ra)(a => map(rb)(b => f(a,b)))
+
+  def rollDie: Rand[Int] = map(nonNegativeLessThan(6))(_ + 1)
 }
