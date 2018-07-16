@@ -20,3 +20,9 @@ lazy val answers = (project in file("answers"))
   .settings(
     name := "answers"
   )
+
+lazy val practice = (project in file("PracticeCode"))
+  .settings(commonSettings)
+  .settings(
+    name := "practice"
+  )
