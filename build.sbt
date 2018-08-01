@@ -13,7 +13,7 @@ lazy val practiceCodeSettings: Seq[Setting[_]] = Seq(
 )
 
 lazy val root = (project in file("."))
-  .aggregate(exercises, answers)
+  .aggregate(exercises, answers, practice)
   .settings(commonSettings)
   .settings(
     name := "fpinscala"

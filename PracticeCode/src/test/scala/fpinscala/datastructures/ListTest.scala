@@ -2,8 +2,6 @@ package fpinscala.datastructures
 
 import org.scalatest.WordSpec
 
-import scala.fpinscala.datastructures.List
-
 class ListTest extends WordSpec {
 
   ".printHello" when {
@@ -34,13 +32,13 @@ class ListTest extends WordSpec {
 
   "product should return product of list " in {
     assertResult(24) {
-      List.product(List(1,2,3,4)){(x:Double,y:Double)=>x*y}
+      List.product(List(1,2,3,4)){ (x:Double, y:Double)=>x*y}
     }
   }
 
   "product should return 0 for list containing 0" in {
     assertResult(0) {
-      List.product(List(1,0,3,4)){(x:Double,y:Double)=>x*y}
+      List.product(List(1,0,3,4)){ (x:Double, y:Double)=>x*y}
     }
   }
 
@@ -53,6 +51,38 @@ class ListTest extends WordSpec {
   "reverse should return reverse of list " in {
     assertResult(List(4,3,2,1)) {
       List.reverse(List(1,2,3,4))
+    }
+  }
+
+  ".map" when {
+    "using map traverse and apply f " in {
+      assertResult(List(2,4,6,8)) {
+        List.map[Int,Int](List(1,2,3,4))(_*2)
+      }
+    }
+  }
+
+  ".filter" when {
+    "Filter out odd ones" in {
+      assertResult(List(2,4,6,8)) {
+        List.filterViaFlatMap[Int](List(1,2,3,4,5,6,7,8))(_%2==0)
+      }
+    }
+  }
+
+  ".flatMap" when {
+    "FlaMap the list to single list" in {
+      assertResult(List(1,1,2,2,3,3,4,4)) {
+        List.flatMap[Int,Int](List(1,2,3,4))(x=>List(x,x))
+      }
+    }
+  }
+
+  ".hasSubsequence" when {
+    "Check for sub sequence in List" in {
+      assertResult(true) {
+        List.hasSubsequence(List(1,2,3,4), List(2,3))
+      }
     }
   }
 

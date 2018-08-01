@@ -1,6 +1,6 @@
 package scala.fpinscala
 
-import scala.fpinscala.datastructures.{Cons, List}
+//import scala.fpinscala.datastructures.{Cons, List}
 
 
 //object CodeToLearnList extends App {
