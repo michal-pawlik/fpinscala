@@ -108,6 +108,8 @@ object Option {
   def traverse_1[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] =
     a.foldRight[Option[List[B]]](Some(Nil))((h,t) => map2(f(h),t)(_ :: _))
 
+  // Good one, the x=>x is referring as Option[A] => Option[A]
+  // A for sequenceViaTraverse is different for traverse :)
   def sequenceViaTraverse[A](a: List[Option[A]]): Option[List[A]] =
     traverse(a)(x => x)
 }
