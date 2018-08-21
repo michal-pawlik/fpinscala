@@ -1,8 +1,8 @@
 package fpinscala.datastructures
 
-import org.scalatest.WordSpec
+import org.scalatest.{Matchers, WordSpec}
 
-class ListTest extends WordSpec {
+class ListTest extends WordSpec  with Matchers {
 
   ".printHello" when {
     "will return Hello" in {
@@ -86,5 +86,8 @@ class ListTest extends WordSpec {
     }
   }
 
+  "scanRight should produce given List" in {
+    List(6, 5, 3, 0) shouldBe List.scanRight(List(1,2,3), 0)(_+_)
+  }
 
 }

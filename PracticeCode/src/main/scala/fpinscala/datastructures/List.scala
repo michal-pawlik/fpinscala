@@ -129,4 +129,13 @@ object List {
     case _ => false
   }
 
+
+  def scanRight[A,B](l: List[A], z: B)(f: (A, => B) => B): List[B] =
+    foldRight(l, (z, List[B](z)))((a, p0) => {
+      // p0 is passed by-name and used in by-name args in f and cons. So use lazy val to ensure only one evaluation...
+      val b2 = f(a, p0._1)
+      (b2, Cons(b2, p0._2))
+    })._2
+
+
 }

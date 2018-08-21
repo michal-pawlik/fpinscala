@@ -153,7 +153,10 @@ trait Stream[+A] {
     }
 
   /*
-  `s startsWith s2` when corresponding elements of `s` and `s2` are all equal, until the point that `s2` is exhausted. If `s` is exhausted first, or we find an element that doesn't match, we terminate early. Using non-strictness, we can compose these three separate logical steps--the zipping, the termination when the second stream is exhausted, and the termination if a nonmatching element is found or the first stream is exhausted.
+  `s startsWith s2` when corresponding elements of `s` and `s2` are all equal, until the point that `s2` is exhausted.
+   If `s` is exhausted first, or we find an element that doesn't match, we terminate early. Using non-strictness,
+    we can compose these three separate logical steps--the zipping, the termination when the second stream is exhausted,
+     and the termination if a nonmatching element is found or the first stream is exhausted.
   */
   def startsWith[A](s: Stream[A]): Boolean =
     zipAll(s).takeWhile(!_._2.isEmpty) forAll {
@@ -161,7 +164,8 @@ trait Stream[+A] {
     }
 
   /*
-  The last element of `tails` is always the empty `Stream`, so we handle this as a special case, by appending it to the output.
+  The last element of `tails` is always the empty `Stream`, so we handle this as a special case,
+   by appending it to the output.
   */
   def tails: Stream[Stream[A]] =
     unfold(this) {
@@ -173,9 +177,13 @@ trait Stream[+A] {
     tails exists (_ startsWith s)
 
   /*
-  The function can't be implemented using `unfold`, since `unfold` generates elements of the `Stream` from left to right. It can be implemented using `foldRight` though.
+  The function can't be implemented using `unfold`, since `unfold` generates elements of the `Stream` from left to right.
+   It can be implemented using `foldRight` though.
 
-  The implementation is just a `foldRight` that keeps the accumulated value and the stream of intermediate results, which we `cons` onto during each iteration. When writing folds, it's common to have more state in the fold than is needed to compute the result. Here, we simply extract the accumulated list once finished.
+  The implementation is just a `foldRight` that keeps the accumulated value and the stream of intermediate results,
+   which we `cons` onto during each iteration. When writing folds,
+    it's common to have more state in the fold than is needed to compute the result.
+     Here, we simply extract the accumulated list once finished.
   */
   def scanRight[B](z: B)(f: (A, => B) => B): Stream[B] =
     foldRight((z, Stream(z)))((a, p0) => {
@@ -232,7 +240,8 @@ object Stream {
     }
 
   /*
-  The below two implementations use `fold` and `map` functions in the Option class to implement unfold, thereby doing away with the need to manually pattern match as in the above solution.
+  The below two implementations use `fold` and `map` functions in the Option class to implement unfold,
+   thereby doing away with the need to manually pattern match as in the above solution.
    */
   def unfoldViaFold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] =
     f(z).fold(empty[A])((p: (A,S)) => cons(p._1,unfold(p._2)(f)))
@@ -241,7 +250,9 @@ object Stream {
     f(z).map((p: (A,S)) => cons(p._1,unfold(p._2)(f))).getOrElse(empty[A])
 
   /*
-  Scala provides shorter syntax when the first action of a function literal is to match on an expression.  The function passed to `unfold` in `fibsViaUnfold` is equivalent to `p => p match { case (f0,f1) => ... }`, but we avoid having to choose a name for `p`, only to pattern match on it.
+  Scala provides shorter syntax when the first action of a function literal is to match on an expression.
+    The function passed to `unfold` in `fibsViaUnfold` is equivalent to `p => p match { case (f0,f1) => ... }`,
+     but we avoid having to choose a name for `p`, only to pattern match on it.
   */
   val fibsViaUnfold =
     unfold((0,1)) { case (f0,f1) => Some((f0,(f1,f0+f1))) }
