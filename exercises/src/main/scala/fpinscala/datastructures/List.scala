@@ -97,7 +97,7 @@ object List { // `List` companion object. Contains functions for creating and wo
 
   def reverse[A](l: List[A]): List[A] = foldLeft(l, Nil:List[A])((acc, e) => Cons(e, acc))
 
-  def append[A](l1: List[A], l2: List[A]): List[A] = foldRight(l2, l1)(Cons(_,_))
+  def appendFold[A](l1: List[A], l2: List[A]): List[A] = foldRight(l2, l1)(Cons(_,_))
 
   def flatten[A](l: List[List[A]]): List[A] =
     foldRight(l, Nil:List[A])((e, acc) => foldRight(e, acc)(Cons(_,_)))
@@ -117,6 +117,17 @@ object List { // `List` companion object. Contains functions for creating and wo
   def filter2[A](l: List[A])(f: A=>Boolean): List[A] =
     flatMap(l)(e => if(f(e)) Cons(e, Nil) else Nil)
 
-//  def zip[A, B](l1: List[A], l2: List[B]): List[(A, B)] = (l1, l2)
+  def zip[A, B](l1: List[A], l2: List[B]): List[(A, B)] = {
+    def go(result: List[(A, B)], in1: List[A], in2: List[B]): List[(A, B)] = (in1, in2) match {
+      case (Nil, _) => result
+      case (_, Nil) => result
+      case (Cons(e1, t1), Cons(e2, t2)) => go(append(result, List((e1, e2))), t1, t2)
+    }
+    go(Nil, l1, l2)
+  }
 
+  def sumLists(l1: List[Int], l2: List[Int]): List[Int] = map(zip(l1, l2))(x => x._1 + x._2)
+
+  def zipWith[A, B, C](l1: List[A], l2: List[B])(f: ((A, B)) => C): List[C] =
+    map(zip(l1, l2))(f)
 }
