@@ -62,12 +62,50 @@ trait Stream[+A] {
   def flatMap[B](f: A=>Stream[B]): Stream[B] =
     foldRight(Empty: Stream[B])((e, acc) => f(e) append acc )
 
-  def startsWith[B](s: Stream[B]): Boolean = ???
+  def startsWith[B](s: Stream[B]): Boolean =
+    zipAll(s).forAll {
+      case (Some(v1), Some(v2)) => v1 == v2
+      case (Some(_), None) => true
+      case _ => false
+    }
 
   def toList: List[A] = this match {
     case Cons(h, t) => h() :: t().toList
     case Empty => Nil
   }
+
+  def mapUnFold[B](f: A=>B): Stream[B] =unfold(this){
+    case Cons(h, t) => Some((f(h()), t()))
+    case Empty => None
+  }
+
+  def takeUnFold(n: Int): Stream[A] = unfold((this, n)){
+    case (Cons(h, _), 1) => Some(h(), (Empty, n))
+    case (Cons(h, t), n) if n > 1 => Some(h(), (t(), n-1))
+    case _ => None
+  }
+
+  def takeWhileUnFold(p: A => Boolean): Stream[A] = unfold(this){
+    case Cons(h, t) if p(h()) => Some(h(), t())
+    case _ => None
+  }
+
+  def zipWith[B, C](s2: Stream[B])(f: ((A, B)) => C): Stream[C] = unfold((this, s2)) {
+    case (Cons(h1, t1), Cons(h2, t2)) => Some((f(h1(), h2()), (t1(), t2())))
+    case _ => None
+  }
+
+  def zipAll[B, C](s2: Stream[B]): Stream[(Option[A], Option[B])] = unfold((this, s2)) {
+    case (Cons(h1, t1), Cons(h2, t2)) => Some((Some(h1()), Some(h2())), (t1(), t2()))
+    case (Cons(h1, t1), Empty) => Some((Some(h1()), None), (t1(), Empty))
+    case (Empty, Cons(h2, t2)) => Some((None, Some(h2())), (Empty, t2()))
+    case _ => None
+  }
+
+  def tails: Stream[Stream[A]] = unfold(this){
+    case s @ Cons(_, t) => Some((s, t()))
+    case Empty => None
+  } append Stream(empty)
 }
 case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
@@ -98,5 +136,11 @@ object Stream {
     go(1, 0)
   }
 
-  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = ???
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = f(z) match {
+    case Some((a, s)) => cons(a, unfold(s)(f))
+    case None => empty
+  }
+
+  def fibs_1: Stream[Int] = unfold((0,1))(s => Some((s._1, (s._2, s._1+s._2))))
+
 }
