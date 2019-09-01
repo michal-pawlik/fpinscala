@@ -12,6 +12,8 @@ object Par {
     (es: ExecutorService) =>
       UnitFuture(a) // `unit` is represented as a function that returns a `UnitFuture`, which is a simple implementation of `Future` that just wraps a constant value. It doesn't use the `ExecutorService` at all. It's always done and can't be cancelled. Its `get` method simply returns the value that we gave it.
 
+  def lazyUnit[A](a: => A): Par[A] = fork(unit(a))
+
   private case class UnitFuture[A](get: A) extends Future[A] {
     def isDone                                  = true
     def get(timeout: Long, units: TimeUnit)     = get
@@ -48,8 +50,13 @@ object Par {
       if (run(es)(cond).get) t(es) // Notice we are blocking on the result of `cond`.
       else f(es)
 
+  def asyncF[A, B](f: A=>B): A => Par[B] =
+    (a: A) => lazyUnit(f(a))
+
   /* Gives us infix syntax for `Par`. */
   implicit def toParOps[A](p: Par[A]): ParOps[A] = new ParOps(p)
+
+
 
   class ParOps[A](p: Par[A]) {}
 }
@@ -64,4 +71,16 @@ object Examples {
       sum(l) + sum(r) // Recursively sum both halves and add the results together.
     }
 
+  def sequence[A](ps: List[Par[A]]): Par[List[A]] =
+    ps.foldRight(unit(Nil): Par[List[A]])((e, acc ) =>
+      map(acc)(e::_)
+    )
+
+  def parMap[A,B](ps: List[A])(f: A => B): Par[List[B]] = fork {
+    val fbs: List[Par[B]] = ps.map(asyncF(f))
+    sequence(fbs)
+  }
+
+  def parFilter[A](as: List[A])(f: A => Boolean): Par[List[A]] =
+    lazyUnit(as.filter(f))
 }
