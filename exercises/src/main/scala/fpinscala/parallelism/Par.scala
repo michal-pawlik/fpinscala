@@ -45,10 +45,45 @@ object Par {
   def delay[A](fa: => Par[A]): Par[A] =
     es => fa(es)
 
+//  def choice[A](cond: Par[Boolean])(t: Par[A], f: Par[A]): Par[A] =
+//    es =>
+//      if (run(es)(cond).get) t(es) // Notice we are blocking on the result of `cond`.
+//      else f(es)
+
+  def map2Other[A, B, C](a: Par[A], b: Par[B])(f: (A, B) => C): Par[C] =
+    flatMap(a)(va => map(b)(vb => f(va,vb)))
+  
+  def join[A](a: Par[Par[A]]): Par[A] =
+    es => run(es)(run(es)(a).get())
+//
+//  def join[A](a: Par[Par[A]]): Par[A] =
+//    es => run(es)(flatMap(a)(identity))
+
+  def flatMapWithJoin[A,B](pa: Par[A])(f: A => Par[B]): Par[B] =
+    join(map(pa)(f))
+
+  def flatMap[A,B](pa: Par[A])(f: A => Par[B]): Par[B] =
+    es => run(es)(f(run(es)(pa).get))
+
+  def chooser[A,B](pa: Par[A])(choices: A => Par[B]): Par[B] =
+    es => run(es)(choices(run(es)(pa).get))
+
+  def choiceMap[K,V](key: Par[K])(choices: Map[K,Par[V]]): Par[V] =
+    es => run(es)(chooser(key)(choices))
+//
+//  def choiceMap[K,V](key: Par[K])(choices: Map[K,Par[V]]): Par[V] =
+//    es => run(es)(choices(run(es)(key).get))
+//
+  def choiceN[A](n: Par[Int])(choices: List[Par[A]]): Par[A] =
+    es => run(es)(chooser(n)(choices))
+//  def choiceN[A](n: Par[Int])(choices: List[Par[A]]): Par[A] =
+//    es => run(es)(map(n)(v => run(es)(choices(v)).get))
+
   def choice[A](cond: Par[Boolean])(t: Par[A], f: Par[A]): Par[A] =
-    es =>
-      if (run(es)(cond).get) t(es) // Notice we are blocking on the result of `cond`.
-      else f(es)
+    es => {
+      val parN = map(cond)(v => if (v) 1 else 0)
+      run(es)(choiceN(parN)(List(f,t)))
+    }
 
   def asyncF[A, B](f: A=>B): A => Par[B] =
     (a: A) => lazyUnit(f(a))
